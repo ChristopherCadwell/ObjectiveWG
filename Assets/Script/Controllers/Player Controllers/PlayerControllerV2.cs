@@ -12,7 +12,7 @@ public class PlayerControllerV2 : Controller
     protected PlayerInputActions playerInputActions; //variable for storing the input schemes the pawn will be using
     protected PlayerPawn pawn;//variable for storing the pawn
     [SerializeField] protected Rigidbody2D rb2d; //the rigidbody of the test character
-
+    private bool isAttacking;
 
     private bool _interactRange = false;
 
@@ -45,7 +45,7 @@ public class PlayerControllerV2 : Controller
     [SerializeField]
     protected float jumpTime = 0.09f; //the time we set in the editor for the maximum amount of time we can jump into the air before we start falling
     protected float jumpTimeCounter; //the counter that keeps track of jumpTime
-    protected bool isNotJumping = true; //decides whether the player has stopped jumping
+    [SerializeField]protected bool isJumping = false; //decides whether the player has stopped jumping
     #endregion
 
     #region slope stuff
@@ -64,10 +64,11 @@ public class PlayerControllerV2 : Controller
     public LayerMask whatIsGround; //The layer mask for what is considered "the ground" in the game
     public CapsuleCollider2D capsuleCollider2d;
     [SerializeField] protected float belowCheck = 0.2f;
-    [SerializeField]private int colCount = 0;
+    [SerializeField] private int colCount = 0;
 
     [SerializeField]
     protected float maxGroundAngle = 50.0f;
+    protected float angleTolerance;
     public Vector2 colSize;
     #endregion
     #endregion
@@ -122,26 +123,29 @@ public class PlayerControllerV2 : Controller
     #region Update
     protected override void Update()
     {
-        if (colCount == 0)
-            GroundCheck();
-        SlopeCheck();
         base.Update();
     }
     protected override void FixedUpdate()
     {
-        
-        
         ApplyMovement();
+
+        isGrounded = GroundCheck();
+
+        if (colCount == 0)//not colliding with anything
+            GroundCheck();//look for something beneath us
+
+        SlopeCheck();
+
         FlipSprite(inputX); //Makes sure we are facing the direction we are moving
 
         ani.SetBool("Grounded", isGrounded);//match bools
 
-        if (!isNotJumping && !isGrounded) //if we are jumping
+        if (isJumping && !isGrounded) //if we are jumping
         {
             if (jumpTimeCounter > 0) //and our jump counter hasnt reached zero
             {
                 ani.SetBool("Jumping", true);//tell the animator to start jumping
-
+                isJumping = true;
                 rb2d.velocity += newForce;
                 jumpTimeCounter -= Time.fixedDeltaTime; // subtracts time from the jumpTimeCounter
             }
@@ -149,12 +153,13 @@ public class PlayerControllerV2 : Controller
         else if (isGrounded)
         {
             ani.SetBool("Jumping", false);
+            isJumping = false;
         }
         else
         {
             //do nothing
         }
-        #endregion
+
         base.FixedUpdate();
     }
     #endregion
@@ -162,53 +167,62 @@ public class PlayerControllerV2 : Controller
     #region Movement
     protected override void ApplyMovement()
     {
-        if (!isCrouching)
+        if (!isAttacking)
         {
-            if (!isOnSlope)
+            if (!isCrouching)
             {
-                if (!pawn.IsSprinting)
+                if (!isOnSlope)
                 {
-                    if (isGrounded)
+                    rb2d.gravityScale = 5;
+                    if (!pawn.IsSprinting)
                     {
-                        newVelocity.Set(walkSpeed * inputX, 0.0f);
-                        rb2d.velocity = newVelocity; ; //sets the walkVelocity variable equal to that of the protected variable _walkSpeed on the playerpawn
+                        if (isGrounded)
+                        {
+                            newVelocity.Set(walkSpeed * inputX, rb2d.velocity.y);
+                            rb2d.velocity = newVelocity; ; //sets the walkVelocity variable equal to that of the protected variable _walkSpeed on the playerpawn
+                        }
+                        else
+                        {
+                            newVelocity.Set(walkSpeed * inputX, rb2d.velocity.y);
+                            rb2d.velocity = newVelocity; ; //sets the walkVelocity variable equal to that of the protected variable _walkSpeed on the playerpawn
+                        }
                     }
-                    else
+                    if (pawn.IsSprinting)
                     {
-                        newVelocity.Set(walkSpeed * inputX, rb2d.velocity.y);
-                        rb2d.velocity = newVelocity; ; //sets the walkVelocity variable equal to that of the protected variable _walkSpeed on the playerpawn
+                        if (isGrounded)
+                        {
+                            newVelocity.Set(walkSpeed * runMult * inputX, rb2d.velocity.y);
+                            rb2d.velocity = newVelocity; ; //sets the walkVelocity variable equal to that of the protected variable _walkSpeed on the playerpawn
+                        }
+                        else
+                        {
+                            newVelocity.Set(walkSpeed * runMult * inputX, rb2d.velocity.y);
+                            rb2d.velocity = newVelocity; ; //sets the walkVelocity variable equal to that of the protected variable _walkSpeed on the playerpawn
+                        }
                     }
-                }
-                if (pawn.IsSprinting)
-                {
-                    if (isGrounded)
-                    {
-                        newVelocity.Set(walkSpeed * runMult * inputX, 0.0f);
-                        rb2d.velocity = newVelocity; ; //sets the walkVelocity variable equal to that of the protected variable _walkSpeed on the playerpawn
-                    }
-                    else
-                    {
-                        newVelocity.Set(walkSpeed * runMult * inputX, rb2d.velocity.y);
-                        rb2d.velocity = newVelocity; ; //sets the walkVelocity variable equal to that of the protected variable _walkSpeed on the playerpawn
-                    }
-                }              
-            }
-            else
-            {
-                if (!pawn.IsSprinting)
-                {
-                        newVelocity.Set(walkSpeed * slopeNormalPerp.x * -inputX, walkSpeed * slopeNormalPerp.y * -inputX);
-                        rb2d.velocity = newVelocity;
                 }
                 else
                 {
-                    newVelocity.Set(walkSpeed * runMult * slopeNormalPerp.x * -inputX, walkSpeed * runMult * slopeNormalPerp.y * -inputX);
-                    rb2d.velocity = newVelocity;
+                    rb2d.gravityScale = 10;
+                    if (isJumping)
+                    {
+                        rb2d.gravityScale = 5;
+                        newVelocity.Set(rb2d.velocity.x, rb2d.velocity.y);
+                    }
+                    else if (!pawn.IsSprinting)
+                    {
+                        newVelocity.Set(walkSpeed * slopeNormalPerp.x * -inputX, walkSpeed * slopeNormalPerp.y * -inputX);
+                        rb2d.velocity = newVelocity;
+                    }
+                    else
+                    {
+                        newVelocity.Set(walkSpeed * runMult * slopeNormalPerp.x * -inputX, walkSpeed * runMult * slopeNormalPerp.y * -inputX);
+                        rb2d.velocity = newVelocity;
+                    }
+
                 }
-                
             }
         }
-
     }
     #endregion
 
@@ -228,13 +242,31 @@ public class PlayerControllerV2 : Controller
 
         if (slopeHitFront)
         {
-            isOnSlope = true;
             slopeSideAngle = Vector2.Angle(slopeHitFront.normal, Vector2.up);
+            if (slopeSideAngle > 89)
+            {
+                isOnSlope = false;
+            }
+            else
+            {
+                isOnSlope = true;
+            }
+            
+           
         }
         else if (slopeHitBack)
         {
-            isOnSlope = true;
             slopeSideAngle = Vector2.Angle(slopeHitBack.normal, Vector2.up);
+
+            if (slopeSideAngle > 89)
+            {
+                isOnSlope = false;
+            }
+            else
+            {
+                isOnSlope = true;
+            }
+            
         }
         else
         {
@@ -249,9 +281,14 @@ public class PlayerControllerV2 : Controller
         {
             slopeNormalPerp = Vector2.Perpendicular(hit.normal).normalized;
             slopeDownAngle = Vector2.Angle(hit.normal, Vector2.up);
-            if (slopeDownAngle != slopeDownAngleOld)
+
+            if ((slopeDownAngle <= angleTolerance)&&(slopeDownAngle != 0))
             {
-                isOnSlope = true;
+                Debug.Log(slopeDownAngle);
+                if (slopeDownAngle != slopeDownAngleOld)
+                {
+                    isOnSlope = true;
+                }
             }
 
             slopeDownAngleOld = slopeDownAngle;
@@ -261,7 +298,6 @@ public class PlayerControllerV2 : Controller
             Debug.DrawRay(hit.point, hit.normal, Color.green);
             Debug.DrawRay(hit.point, slopeNormalPerp, Color.red);
         }
-        Debug.Log(inputX);
         if (isOnSlope && inputX == 0)
         {
             rb2d.sharedMaterial = fullFriction;
@@ -276,7 +312,6 @@ public class PlayerControllerV2 : Controller
     #endregion
 
     #region Action Input Functions
-
     public virtual void JumpStart(InputAction.CallbackContext context)
     {
         if (context.performed)
@@ -284,16 +319,18 @@ public class PlayerControllerV2 : Controller
             if (isGrounded && !isCrouching) //only allows the player to jump if they're on the ground
             {
                 jumpTimeCounter = jumpTime; //if we are grounded, it sets the jumpTimeCounter back to the jumpTime variable
-                isNotJumping = false; //sets the stoppedJumping bool to false so that we have !stoppedJumping
-                newForce.Set(0.0f, jumpForce);
-                rb2d.AddForce(newForce, ForceMode2D.Impulse);
+                currentVelocity = newVelocity;
+                isJumping = true;
+                newForce.Set(0.0f, pawn.JumpHeight);
+                newVelocity.Set(currentVelocity.x, jumpForce);
+                rb2d.velocity = newVelocity;
             }
         }
     }
     public virtual void JumpEnd(InputAction.CallbackContext context)
     {
         jumpTimeCounter = 0; //resets the jumpTimeCounter to zero
-        isNotJumping = true; //sets the stoppedJumping bool to true, cause we have stopped jumping
+        isJumping = false;
     }
     public virtual void Move(InputAction.CallbackContext context)
     {
@@ -355,35 +392,56 @@ public class PlayerControllerV2 : Controller
     #endregion
 
     #region Ground Check
-    protected void GroundCheck()
+    protected bool GroundCheck()
     {
         //Draw a line from the center of player capsule collider straight down to the bottom of the collider
         //with an additional "belowLength"
-        isGrounded = Physics2D.Raycast(capsuleCollider2d.bounds.center, Vector2.down, capsuleCollider2d.bounds.extents.y + belowCheck, whatIsGround);
+        //**********FIXED*********//
+        if (isJumping)
+        {
+            isOnSlope = false;
+            return false;
+        }
+            
+        else
+            return Physics2D.Raycast(capsuleCollider2d.bounds.center, Vector2.down, capsuleCollider2d.bounds.extents.y + belowCheck, whatIsGround);
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
         colCount++;
     }
-    void OnCollisionStay2D (Collision2D coll)
+    void OnCollisionStay2D(Collision2D coll)
     {
-        float angleTolerance = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
+        angleTolerance = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
 
         foreach (ContactPoint2D contact in coll.contacts)
         {
-            if (Vector3.Dot(contact.normal, Vector3.up) > angleTolerance)
+            if (Vector3.Dot(contact.normal, Vector3.up) < angleTolerance)
             {
                 isGrounded = true;
             }
         }
     }
-    
+
     private void OnCollisionExit2D(Collision2D collision)
     {
         colCount--;
     }
     #endregion
 
+    #region StopMovement
+    private void StopMovement()
+    {
+        isAttacking = true;
+        newVelocity.Set(0, 0);
+        rb2d.velocity.Set(newVelocity.x, newVelocity.y);
+    }
+
+    private void ResumeMovement()
+    {
+        isAttacking = false;
+    }
+    #endregion
 
     #region Cleanup
     private void OnDestroy()
@@ -422,5 +480,5 @@ public class PlayerControllerV2 : Controller
         //Debug.Log(raycastHit.collider);
     }
     #endregion
-    
+    #endregion
 }

@@ -111,9 +111,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1563904803
-  m_SortingLayer: 5
+  m_SortingLayer: 6
   m_SortingOrder: 1
-  m_Sprite: {fileID: 21300000, guid: ccc7b30b5f400414a9ee4b4723a3220b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 82337864152c6334f87f798109079cdd, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -186,9 +186,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32376d0ab1a550f44b172168efae69cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _walkSpeed: 6
-  _runMult: 1.5
-  _jumpHeight: 20
+  _walkSpeed: 4
+  _runMult: 2.5
+  _jumpHeight: 8
   _damageA: 5
   _damageB: 10
   _damageC: 25
@@ -212,26 +212,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 283076cc70643e44c8532791e93979b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ani: {fileID: 0}
+  ani: {fileID: 1336663593021864652}
   inputRecorder: {fileID: 0}
   move: 0
-  rb2d: {fileID: 0}
+  rb2d: {fileID: 1336663593021864645}
   noFriction: {fileID: 6200000, guid: a7d07c8865247894690a7e2ac137a251, type: 2}
   fullFriction: {fileID: 6200000, guid: 48626c08f0a6277489a9387662b457ac, type: 2}
-  walkSpeed: 0
-  runMult: 0
-  jumpForce: 0
+  walkSpeed: 1
+  runMult: 1.5
+  jumpForce: 12
   jumpTime: 0.04
+  isJumping: 0
   slopeCheckDistance: 0.5
   isOnSlope: 0
   isGrounded: 0
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
-  capsuleCollider2d: {fileID: 0}
-  belowCheck: 0.2
+  capsuleCollider2d: {fileID: 6904395141196890448}
+  belowCheck: 0.5
   colCount: 0
-  maxGroundAngle: 180
+  maxGroundAngle: 90
   colSize: {x: 0, y: 0}
 --- !u!114 &7700208908291447054
 MonoBehaviour:
@@ -247,11 +248,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anim: {fileID: 0}
   isAttacking: 0
+  attackPointIdle: {fileID: 651217628918886266}
+  attackPointCrouched: {fileID: 1582143866818022629}
+  attackPointDownAir: {fileID: 6504136024550080444}
+  attackRange: 0.5
+  enemyLayers:
+    serializedVersion: 2
+    m_Bits: 128
   enemyLayer:
     serializedVersion: 2
     m_Bits: 128
   hitAPos0: {fileID: 651217628918886266}
   hitAVector0: {x: 0.72, y: 0.31, z: 0}
+  hitAJumpPos: {fileID: 0}
+  hitAJumpVector: {x: 0.6, y: 0.49, z: 0}
+  hitACrouchPos: {fileID: 0}
+  hitACrouchVector: {x: 0.72, y: 0.31, z: 0}
 --- !u!114 &1281415155016603649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -456,7 +468,7 @@ GameObject:
   m_Component:
   - component: {fileID: 651217628918886266}
   m_Layer: 6
-  m_Name: HitAPos0
+  m_Name: AttackIdle
   m_TagString: HitA
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -470,7 +482,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1845089198985879403}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.8441, y: 0.4374, z: 0}
+  m_LocalPosition: {x: 0.864, y: 0.583, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7872396869264081400}
@@ -578,7 +590,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1563904803
-  m_SortingLayer: 5
+  m_SortingLayer: 6
   m_SortingOrder: 25
   m_Sprite: {fileID: 21300000, guid: ef8ce2b3d35e5154483d1ca1b08fd70f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -601,7 +613,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1582143866818022629}
   m_Layer: 0
-  m_Name: HitBPos
+  m_Name: AttackCrouched
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -615,7 +627,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6907385764299168043}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.845, y: 0.282, z: 0}
+  m_LocalPosition: {x: 0.857, y: -0.034, z: 0}
   m_LocalScale: {x: 0.9946291, y: 0.98396146, z: 1}
   m_Children: []
   m_Father: {fileID: 7872396869264081400}
@@ -631,7 +643,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6504136024550080444}
   m_Layer: 0
-  m_Name: HitCPos
+  m_Name: AttackAir
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -645,7 +657,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8603168553486982241}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.749, y: 0.687, z: -0.97746587}
+  m_LocalPosition: {x: 0.668, y: -0.231, z: -0.97746587}
   m_LocalScale: {x: 0.9946291, y: 0.98396146, z: 1}
   m_Children: []
   m_Father: {fileID: 7872396869264081400}

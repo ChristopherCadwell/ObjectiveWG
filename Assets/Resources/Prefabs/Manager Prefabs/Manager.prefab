@@ -84,7 +84,6 @@ GameObject:
   - component: {fileID: 3086752093406043979}
   - component: {fileID: 3086752093406043408}
   - component: {fileID: 3086752093406043402}
-  - component: {fileID: 5593403280914777566}
   m_Layer: 5
   m_Name: Manager
   m_TagString: GameManager
@@ -107,6 +106,7 @@ Transform:
   - {fileID: 8598707883155779285}
   - {fileID: 7629283231742760596}
   - {fileID: 8242509867062503430}
+  - {fileID: 9214876508972091551}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -123,12 +123,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
-  hitACollider: {fileID: 0}
   playerPrefab: {fileID: 0}
+  hitACollider: {fileID: 0}
   instanPoint: {fileID: 0}
   playerSpawn: {fileID: 3413778860743891334}
+  lastCheckPoint: {fileID: 0}
+  lastCheckPointName: 
   room1: {fileID: 0}
+  currentRoom: {fileID: 0}
   confiner: {fileID: 0}
+  cam: {fileID: 0}
+  cameraMain: {fileID: 0}
+  currentMap: {fileID: 0}
   playerHealth: {fileID: 0}
   lives: 3
   percent: 0
@@ -151,21 +157,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   testDamage: 50
---- !u!114 &5593403280914777566
+--- !u!1 &7303017261050909161
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9214876508972091551}
+  - component: {fileID: 8003875492090580296}
+  m_Layer: 5
+  m_Name: DataPersistanceManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9214876508972091551
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7303017261050909161}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 3086752093406043979}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8003875492090580296
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3086752093406043766}
+  m_GameObject: {fileID: 7303017261050909161}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a9eea4754178fc4683c91e75bf1a35e, type: 3}
+  m_Script: {fileID: 11500000, guid: 6ab8a716e51945248a6375808d88e129, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  availableMoves: []
-  controller: {fileID: 0}
-  inputRecorder: {fileID: 0}
+  fileName: HyrumTest
 --- !u!1 &7461015166751081505
 GameObject:
   m_ObjectHideFlags: 0
@@ -225,7 +260,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7629283231742760592}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -27, y: -22.494972, z: -20}
+  m_LocalPosition: {x: -19.988558, y: -22.494968, z: 136.78}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 671355319}

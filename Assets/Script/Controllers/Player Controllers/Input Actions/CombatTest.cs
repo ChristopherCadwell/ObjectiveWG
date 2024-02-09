@@ -6,9 +6,10 @@ using UnityEngine.Animations;
 
 public class CombatTest : MonoBehaviour
 {
-    public Animator anim;
-    protected PlayerPawn pawn;
-    public bool isAttacking = false;
+    public Animator anim; //get access to animator system
+    protected PlayerPawn pawn; //get access to player pawn
+    public bool isAttacking = false; //initial setting of isAttacking WARNING there is also an isAttacking in animator
+
     
     public PlayerInputActions playerLightAttack;
 
@@ -22,6 +23,15 @@ public class CombatTest : MonoBehaviour
 
     public static CombatTest PlayerCombatInstance;
 
+    [SerializeField]
+    private Transform attackPointIdle;
+    [SerializeField]
+    private Transform attackPointCrouched;
+    [SerializeField]
+    private Transform attackPointDownAir;
+    public float attackRange = 0.5f;
+    public LayerMask enemyLayers;
+
     #region Hitboxes
     public LayerMask enemyLayer;//define player's layer
     /*  2 variables each hitbox (frame)
@@ -31,6 +41,14 @@ public class CombatTest : MonoBehaviour
     protected Transform hitAPos0;
     [SerializeField, Tooltip("the first size of hit A's hitbox")]
     protected Vector3 hitAVector0;
+    [SerializeField, Tooltip("the first position of Jump Hit A's hitbox")]
+    protected Transform hitAJumpPos;
+    [SerializeField, Tooltip("the first size of Jump Hit A's hitbox")]
+    private Vector3 hitAJumpVector;
+    [SerializeField, Tooltip("the first position of Crouch A's hitbox")]
+    private Transform hitACrouchPos;
+    [SerializeField, Tooltip("the first size of Crouch A's hitbox")]
+    private Vector3 hitACrouchVector;
     #endregion
 
     private void Awake()
@@ -52,7 +70,9 @@ public class CombatTest : MonoBehaviour
         anim = GetComponent<Animator>();
         pawn = GetComponent<PlayerPawn>();
         #region HitBoxSetup
-        hitAPos0 = transform.GetChild(0).GetChild(0);//Do not re-organize Ashlynn prefab without editing this line
+        hitAPos0 = transform.GetChild(0).GetChild(0);//Do not re-organize Ashlynn prefab without editing these lines
+        hitAJumpPos = transform.GetChild(0).GetChild(1); //First GetChild is HitBoxes in Prefab
+        hitACrouchPos = transform.GetChild(0).GetChild(2); //Second GetChild(grandchild) is specific hitbox
         #endregion
 
 
@@ -85,7 +105,18 @@ public class CombatTest : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (isAttacking && anim.GetBool("Grounded"))
+        {
+            GroundLightAttackAOE();
+        }
+        else if (isAttacking && anim.GetBool("Crouched"))
+        {
+            CrouchedAttackAOE();
+        }
+        else if (isAttacking && !anim.GetBool("Grounded"))
+        {
+            DownAirAttackAOE();
+        }
     }
 
     private void LightPunch(InputAction.CallbackContext context)
@@ -93,9 +124,7 @@ public class CombatTest : MonoBehaviour
         //Debug.Log(context);
         
         if (!isAttacking)
-        {
             isAttacking = true;
-        }
     }
 
     /*Attempt to unsubscribe*/
@@ -140,14 +169,68 @@ public class CombatTest : MonoBehaviour
                 }
                 break;
         }
+
     }
+
+    #region CombatAOE
+    void GroundLightAttackAOE()
+    {
+        Collider2D[] assetsHitIdle = Physics2D.OverlapCircleAll(attackPointIdle.position, attackRange, enemyLayers);
+
+        foreach (Collider2D Enemy in assetsHitIdle)
+        {
+        }
+    }
+
+    void CrouchedAttackAOE()
+    {
+        Collider2D[] assetsHitCrouched = Physics2D.OverlapCircleAll(attackPointCrouched.position, attackRange, enemyLayers);
+
+        foreach (Collider2D Enemy in assetsHitCrouched)
+        {
+        }
+    }
+    void DownAirAttackAOE()
+    {
+        Collider2D[] assetsHitDownAir = Physics2D.OverlapCircleAll(attackPointDownAir.position, attackRange, enemyLayers);
+
+        foreach (Collider2D Enemy in assetsHitDownAir)
+        {
+        }
+    }
+    
+  
+
+    private void OnDrawGizmos()
+    {
+        if (attackPointIdle == null)
+            return;
+        if (attackPointCrouched == null)
+            return;
+        if (attackPointDownAir == null)
+            return;
+        if (isAttacking && !anim.GetBool("Crouched") && anim.GetBool("Grounded"))
+        {
+            Gizmos.DrawWireSphere(attackPointIdle.position, attackRange);
+        }
+        if (isAttacking && anim.GetBool("Crouched"))
+        {
+            Gizmos.DrawWireSphere(attackPointCrouched.position, attackRange);
+        }
+        if (isAttacking && !anim.GetBool("Grounded"))
+        {
+            Gizmos.DrawWireSphere(attackPointDownAir.position, attackRange);
+        }
+
+    }
+    #endregion
     protected void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red; //makes Gizmo for Hitboxes red
         #region Hitbox A Gizmos
-        Gizmos.DrawWireCube(hitAPos0.position, hitAVector0); //displays the size and shape of hitbox
-        //Gizmos.DrawWireCube(hitAJumpPos.position, hitAJumpVector); //displays the size and shape of hitbox A in the air
-        //Gizmos.DrawWireCube(hitACrouchPos.position, hitACrouchVector); //displays the size and shape of hitbox A while crouching
+        Gizmos.DrawWireCube(attackPointIdle.position, hitAVector0); //displays the size and shape of hitbox
+        Gizmos.DrawWireCube(attackPointDownAir.position, hitAJumpVector); //displays the size and shape of hitbox A in the air
+        Gizmos.DrawWireCube(attackPointCrouched.position, hitACrouchVector); //displays the size and shape of hitbox A while crouching
         #endregion
     }
 }

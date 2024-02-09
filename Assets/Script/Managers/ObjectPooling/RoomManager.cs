@@ -19,11 +19,12 @@ public class RoomManager : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            gm.currentRoom = roomCollider;
             StartCoroutine(UpdateSpawn(0.2f));
             for (int i = 0; i < _pool.enemyPool.Count; i++)
             {
                 _spawnedEnemy = _pool.enemyPool[i];
-                _spawnedEnemy.transform.SetPositionAndRotation(_pool.spawnPoint[i].transform.position, _pool.spawnPoint[i].transform.rotation);//spawn with rotation
+                _spawnedEnemy.transform.SetPositionAndRotation(_pool.spawnPoints[i].transform.position, _pool.spawnPoints[i].transform.rotation);//spawn with rotation
                 Health healthReset = _spawnedEnemy.GetComponent<Health>();//store health component
                 healthReset.Respawn();//restore health to max
                 _spawnedEnemy.SetActive(true);//activate enemy

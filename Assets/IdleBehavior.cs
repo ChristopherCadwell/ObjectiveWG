@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class IdleBehavior : StateMachineBehaviour
 {
+
     // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
     //override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     //{
@@ -14,7 +15,11 @@ public class IdleBehavior : StateMachineBehaviour
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         if (CombatTest.PlayerCombatInstance.isAttacking)
+        {
             CombatTest.PlayerCombatInstance.anim.Play("Atk1");
+            //animator.SetBool("isAttacking", true);
+        }
+
     }
 
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state

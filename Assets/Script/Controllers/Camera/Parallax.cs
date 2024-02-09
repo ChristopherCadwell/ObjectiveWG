@@ -6,8 +6,9 @@ using Cinemachine.Utility;
 
 public class Parallax : MonoBehaviour
 {
-    
-    protected float lengthx,
+    private GameManager gm;
+    protected float 
+        lengthx,
         lengthy,
         startposx,
         startposy;
@@ -19,69 +20,77 @@ public class Parallax : MonoBehaviour
     [Header("PPU"), Tooltip("This should match the pixels per unit of the project")]
     public float pixelsPerUnit;
     [SerializeField]
-    private float tempx,
+    private float
+        tempx,
         tempy,
         distancex,
-        distancey,
-        prevCamX,
-        prevCamY;
-        
+        distancey;
+
+    private void OnEnable()
+    {
+        gm = GameManager.Instance;
+    }
     // Start is called before the first frame update
     void Start()
     {
         startposx = transform.position.x;
         startposy = transform.position.y;
-        lengthx = GetComponent<SpriteRenderer>().bounds.size.x;
-        lengthy = GetComponent<SpriteRenderer>().bounds.size.y;
     }
 
     // Update is called once per frame
     void Update()
     {
-        tempy = cam.transform.position.y * (1 - parallaxFactorY);
-        distancey = cam.transform.position.y * parallaxFactorY;
         tempx = cam.transform.position.x * (1 - parallaxFactorX);
+        tempy = cam.transform.position.y * (1 - parallaxFactorY);
         distancex = cam.transform.position.x * parallaxFactorX;
+        distancey = cam.transform.position.y * parallaxFactorY;
 
-        if (Camera.main.transform.position.x <= -39.9)
-        {
-            UpdateY();
-            return;
-        }
-        if (Camera.main.transform.position.x >= 119.9)
-        {
-            UpdateY();
-            return;
-        }
-        UpdateX();
-        UpdateY();
-
+    }
+    private void FixedUpdate()
+    {
+        if (gm.currentRoom != null)
+            if (gm.currentRoom.bounds.Contains(gm.cameraMain.transform.position))
+            {
+                UpdateX();
+                UpdateY();
+            }
     }
     void UpdateX()
     {
         Vector3 newPosition = new Vector3(startposx + distancex, transform.position.y, transform.position.z);
         transform.position = PixelPerfectClamp(newPosition, pixelsPerUnit);
-       
-            if (tempx > startposx + (lengthx / 2))
-                startposx += lengthx;
-            else if (tempx < startposx - (lengthx / 2))
-                startposx -= lengthx;
-       
-        
+
+        if (tempx > startposx + (lengthx / 2))
+        {
+            startposx += lengthx;
+            Debug.Log("Added to x");
+        }
+
+        else if (tempx < startposx - (lengthx / 2))
+        {
+            startposx -= lengthx;
+            Debug.Log("subtracted from x");
+        }
+
     }
     void UpdateY()
     {
-        
-
         Vector3 newPosition = new Vector3(transform.position.x, startposy + distancey, transform.position.z);
         transform.position = PixelPerfectClamp(newPosition, pixelsPerUnit);
        
             if (tempy > startposy + (lengthy / 1.5))
-                startposy += lengthy;
+        {
+            startposy += lengthy;
+            Debug.Log("Added to y");
+        }
+                
             else if (tempy < startposy - (lengthy / 1.5))
-                startposy -= lengthy;
-       
-        
+        {
+            startposy -= lengthy;
+            Debug.Log("subtracted from y");
+        }
+                
+   
     }
     private Vector3 PixelPerfectClamp(Vector3 locationVector, float pixelsPerUnit)
     {

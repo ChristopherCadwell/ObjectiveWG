@@ -162,7 +162,7 @@ TextureImporter:
       213: -5614977421484936796
     second: Tilemap_Epilogue_52
   externalObjects: {}
-  serializedVersion: 12
+  serializedVersion: 11
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -183,7 +183,6 @@ TextureImporter:
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -222,7 +221,6 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
-  cookieLightType: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -238,30 +236,6 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
     buildTarget: Standalone
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 0
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: Server
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 0
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -1616,60 +1590,6 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable:
-      Tilemap_Epilogue_0: -2302934942790675408
-      Tilemap_Epilogue_1: 5225766971370515188
-      Tilemap_Epilogue_10: 4754093487580252554
-      Tilemap_Epilogue_11: -456205740025084397
-      Tilemap_Epilogue_12: -5459697771551708419
-      Tilemap_Epilogue_13: 2641217027710197646
-      Tilemap_Epilogue_14: -7105578603095442116
-      Tilemap_Epilogue_15: 7471046095957318401
-      Tilemap_Epilogue_16: 4195990127777347667
-      Tilemap_Epilogue_17: -1626285352399784174
-      Tilemap_Epilogue_18: -5153764422572644710
-      Tilemap_Epilogue_19: 4434792129973005921
-      Tilemap_Epilogue_2: -5279108543137932200
-      Tilemap_Epilogue_20: -6977409183403485128
-      Tilemap_Epilogue_21: 5777724265535193787
-      Tilemap_Epilogue_22: -3426293782161385674
-      Tilemap_Epilogue_23: -293931133190065614
-      Tilemap_Epilogue_24: -3593622549626136003
-      Tilemap_Epilogue_25: 6656442135138055280
-      Tilemap_Epilogue_26: -289358796414270213
-      Tilemap_Epilogue_27: 6739851680189584762
-      Tilemap_Epilogue_28: 1225403690274298153
-      Tilemap_Epilogue_29: 4622330778808305164
-      Tilemap_Epilogue_3: 9077105298880130780
-      Tilemap_Epilogue_30: -795833391853383398
-      Tilemap_Epilogue_31: -3813597625438875412
-      Tilemap_Epilogue_32: -3519739829564571401
-      Tilemap_Epilogue_33: 8313822919481923552
-      Tilemap_Epilogue_34: -5734428844855955172
-      Tilemap_Epilogue_35: 1525201113758545880
-      Tilemap_Epilogue_36: -4336969762357035174
-      Tilemap_Epilogue_37: -8325529029077769940
-      Tilemap_Epilogue_38: 5041703918199497709
-      Tilemap_Epilogue_39: 3562478938910802496
-      Tilemap_Epilogue_4: 5300715783568445843
-      Tilemap_Epilogue_40: 1014643282804319990
-      Tilemap_Epilogue_41: -367921255031856517
-      Tilemap_Epilogue_42: 8627787935222064424
-      Tilemap_Epilogue_43: -8540392669633804976
-      Tilemap_Epilogue_44: 3731272480790951904
-      Tilemap_Epilogue_45: 7268893807325942745
-      Tilemap_Epilogue_46: -7361311856947223011
-      Tilemap_Epilogue_47: -7771390938822472002
-      Tilemap_Epilogue_48: 5690748724202019964
-      Tilemap_Epilogue_49: 7675227258950824748
-      Tilemap_Epilogue_5: -3742646340576390448
-      Tilemap_Epilogue_50: 8015857199116617611
-      Tilemap_Epilogue_51: 6177921501668528456
-      Tilemap_Epilogue_52: -5614977421484936796
-      Tilemap_Epilogue_6: 8191676709293938326
-      Tilemap_Epilogue_7: 838378245481583011
-      Tilemap_Epilogue_8: -5161948103846329115
-      Tilemap_Epilogue_9: -799908221355271124
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

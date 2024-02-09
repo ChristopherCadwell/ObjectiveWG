@@ -24,8 +24,6 @@ using System.Threading.Tasks;
 public class Entity : MonoBehaviour
 {
 
-
-    #region Variables
     #region Box Raycast
 
     public bool PlayerDetected;
@@ -44,16 +42,24 @@ public class Entity : MonoBehaviour
     public Color gizmoIdleColor = Color.green;
     public Color gizmoDetectedColor = Color.red;
     public bool showGizmos = true;
-    [SerializeField] protected float delay = 1.0f;
+    [SerializeField] protected float delay=1.0f;
 
     #endregion
+    #region Variables
     #region slope stuff
     [SerializeField] protected float slopeCheckDistance;
     protected float slopeDownAngle;
-    protected float slodeDownAngleOld;
+    protected float slopeDownAngleOld;
     protected float slopeSideAngle;
     protected Vector2 slopeNormalPerp;
     [SerializeField] protected bool isOnSlope;
+    [SerializeField] private CircleCollider2D cc;
+    private Vector2 colliderSize;
+    [SerializeField]
+    private LayerMask whatIsGround;
+    private Vector2 newVelocity;
+
+
     #endregion
     #region Components
     public StateMachine fsm;
@@ -63,14 +69,14 @@ public class Entity : MonoBehaviour
     public Data_Entity entityData;
     public GameObject target { get; private set; }
 
-    protected GameObject floatingTextPrefab;
-    public GameObject fTp;
-    protected Vector3 bump = new Vector3(0, 2, 0.5f);
+    private GameObject floatingTextPrefab;
+    public GameObject fTp; //call to parent object of floating text, used parent to allow for animation & scrolling
+    private Vector3 bump = new Vector3(0, 2, 0.5f);
 
     #endregion
     #region Movement
     public int facingDirection { get; private set; }
-    protected Vector2 tempV2;
+    private Vector2 tempV2;
 
     [SerializeField]
     protected Transform wallCheck,
@@ -93,6 +99,8 @@ public class Entity : MonoBehaviour
         target = GameManager.Instance.player.gameObject;
         floatingTextPrefab = Instantiate(fTp);
         fsm = new StateMachine();//Create state machine
+        cc = GetComponent<CircleCollider2D>();
+        colliderSize = new Vector2(cc.radius, cc.radius);//circles are weird for x,y examples
     }
 
     public virtual void OnEnable()
@@ -101,14 +109,30 @@ public class Entity : MonoBehaviour
     }
     public virtual void Update()
     {
+       
         fsm.currentState.LogicUpdate();//call logic update in update
     }
 
     public virtual void FixedUpdate()
     {
+        
+        if (health.isDead==true) //trying to test for death before update, otherwise object could go away before text is deleted
+        {
+            floatingTextPrefab.GetComponentInChildren<TextMeshPro>().text = transform.position.ToString() + "\n" + fsm.currentState.ToString() + "\n" + health.isDead.ToString(); //Only duplicated to show death state
+            Destroy(floatingTextPrefab); //cleanup diag text if monster dies
+            Debug.Log("called destructors");
+            Destroy(this); //kill the script so we don't have zombie states & entities, also need to kill in inherited versions
+        }
+        else
+        {
+            floatingTextPrefab.transform.localPosition = base.transform.position + bump;
+            floatingTextPrefab.GetComponentInChildren<TextMeshPro>().text = transform.position.ToString() + "\n" + fsm.currentState.ToString() + "\n" + health.isDead.ToString();
+        }
+        slopeCheck();
         fsm.currentState.PhysicsUpdate();//call physics update in fixedupdate
-        floatingTextPrefab.transform.localPosition = base.transform.position+bump;
-        floatingTextPrefab.GetComponentInChildren <TextMeshPro>().text = transform.position.ToString()+"\n"+fsm.currentState.ToString();
+    
+        
+       
     }
 
     //create a box to see if player is near entity
@@ -125,10 +149,17 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public virtual void SetVelocity(float velocity)
+    public virtual void SetVelocity(float velocity) //this is the equivalent of movement code, needs new vectors for slope
     {
         tempV2.Set(facingDirection * velocity, rb.velocity.y);
-        rb.velocity = tempV2;
+        rb.velocity = tempV2; // regular side to side movement
+        
+        if(isOnSlope)
+        {
+            newVelocity.Set(tempV2.x*velocity, tempV2.y *velocity* slopeNormalPerp.y);
+            rb.velocity = newVelocity;
+        }
+      
     }
 
     public virtual bool CheckWall()
@@ -154,7 +185,7 @@ public class Entity : MonoBehaviour
         }
        else
         {
-            LagFlip(1.0f);//If it is not facing the target it will flip, and then return the distance.
+            lagFlip(1.0f);//If it is not facing the target it will flip, and then return the distance.
             return Vector2.Distance(transform.position, target.transform.position) < entityData.viewDistance;
         }
    
@@ -188,15 +219,42 @@ public class Entity : MonoBehaviour
             return false;//If it is on top, returns false as to not get stuck in an infinite loop. 
         }
     }
-    public virtual void LagFlip(float delay)
+    public virtual void lagFlip(float delay) //this is a slowed version of flip to allow for hitting some enemies on the backside
     {
-        Invoke(nameof(Flip), delay);
-        Debug.Log("delayed flip called "+delay);
+        Invoke("Flip", delay);
+        //Debug.Log("delayed flip called "+delay); It's working now, no need for debug.log
     }
     public virtual void Flip()
     {
         facingDirection *= -1;
         transform.Rotate(0f, 180f, 0f);
+    }
+
+    public virtual void slopeCheck()
+    {
+        Vector2 checkPos = cc.bounds.center - new Vector3(0.0f, colliderSize.y/2);
+        slopeCheckVertical(checkPos);
+
+    }
+    public virtual void slopeCheckHorizontal(Vector2 checkPos)
+    {
+
+    }
+    public virtual void slopeCheckVertical(Vector2 checkPos)
+    {
+        RaycastHit2D hit = Physics2D.Raycast(checkPos, Vector2.down, slopeCheckDistance, whatIsGround);
+        if (hit)
+        {
+            slopeNormalPerp = Vector2.Perpendicular(hit.normal);
+            slopeDownAngle = Vector2.Angle(hit.normal, Vector2.up);
+            if(slopeDownAngle != slopeDownAngleOld)
+            {
+                isOnSlope = true;
+            }
+            slopeDownAngleOld = slopeDownAngle;
+            Debug.DrawRay(hit.point, slopeNormalPerp, Color.black);
+            Debug.DrawRay(hit.point, hit.normal, Color.blue); //test draw raycast
+        }
     }
    
     #region Gizmos
