@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - PlayerSpawnPoint
+  - WallCheck
+  - GroundCheck
+  - GameManager
+  - UIAudio
+  - HealthSlider
+  - OptionsBKG
+  - InstanPoint
+  - Enemy
+  - eGroundCheck
+  - Inputs
+  - CombatManager
+  - Room1
+  - MapCam
+  - PlayerFlasher
+  - HUDCanvas
+  - EnemySpawnPoint
+  - Vcam
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Ground
+  - Water
+  - UI
+  - Player
+  - Enemy
+  - SuperGrid
+  - MiniMap
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: BKG
+    uniqueID: 473817421
+    locked: 0
+  - name: Decals Back
+    uniqueID: 3417238943
+    locked: 0
+  - name: Decals Front
+    uniqueID: 4276989641
+    locked: 0
+  - name: Enemy
+    uniqueID: 3073164019
+    locked: 0
+  - name: Player
+    uniqueID: 1563904803
+    locked: 0
+  - name: Ground
+    uniqueID: 2855587509
+    locked: 0
