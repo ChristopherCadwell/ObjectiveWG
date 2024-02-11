@@ -14,16 +14,6 @@ public class EnemyPawn : Pawn
 
 
     #region Functions
-    // Start is called before the first frame update
-    protected override void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    protected override void Update()
-    {
-    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {

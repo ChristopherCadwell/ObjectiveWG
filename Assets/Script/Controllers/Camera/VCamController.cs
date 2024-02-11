@@ -20,20 +20,6 @@ public class VCamController : MonoBehaviour
         gm.cam = vcam;
         vcam.LookAt = gm.player.transform; // set lookat target
         vcam.Follow = gm.player.transform; // set follow target
+        confiner = gm.confiner;
     }
-    
-
-    void Update()
-    {
-        transform.position = PixelPerfectClamp(gm.player.transform.position, pixelsPerUnit);
-    }
-
-    
-    private Vector3 PixelPerfectClamp(Vector3 moveVector, float pixelsPerUnit)
-    {
-        Vector3 vectorInPixels = new Vector3(Mathf.CeilToInt(moveVector.x * pixelsPerUnit), Mathf.CeilToInt(moveVector.y * pixelsPerUnit), Mathf.CeilToInt(moveVector.z * pixelsPerUnit));
-        return vectorInPixels / pixelsPerUnit;
-    }
-    
-
 }

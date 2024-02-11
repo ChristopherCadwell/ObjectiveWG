@@ -1,58 +1,102 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class Flasher : MonoBehaviour
 {
-    public Color unEntered,
+
+    [SerializeField]
+    private Color unEntered,
         entered,
         flashA,
         flashB;
+    private bool hasEntered = false;
+    
+    [SerializeField, Header("The speed of the room flashing")] private float flashDelay = 0.2f;
+    [SerializeField, Header("The speed of the frame animation")] private float frameDelay = 0.5f;
+    private SpriteRenderer sprite;
+    private SpriteRenderer boarder;
+    private Camera cam;
 
-    bool hasEntered = false;
-    protected GameManager gm;
-    SpriteRenderer sprite;
-    Camera cam;
-    BoxCollider2D mapSquare;
 
     private void Awake()
     {
-        sprite = GetComponent<SpriteRenderer>();
+        sprite = GetComponent<SpriteRenderer>();//get the sprite renderer so we can change colors
+        boarder = gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>();
         if (!hasEntered)
-            sprite.color = unEntered;
-        cam = GameObject.FindGameObjectWithTag("MapCam").GetComponent<Camera>();
-        mapSquare = GetComponent<BoxCollider2D>();
-        gm = GameManager.Instance;
+        {
+            sprite.enabled = false;
+            boarder.enabled = false;
+        }
+            
     }
-    public virtual void OnTriggerEnter2D(Collider2D other)
+
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (other.CompareTag("Player"))
+
+        if (collision.GetComponent<PlayerPawn>())
         {
             hasEntered = true;
-            cam.transform.position = new Vector3(transform.position.x, transform.position.y, -10.0f);
-            gm.currentMap = mapSquare;
-            sprite.color = entered;
+            cam = GameObject.FindGameObjectWithTag("MapCam").GetComponent<Camera>();
+            cam.transform.position = new Vector3(collision.transform.position.x, collision.transform.position.y, -10.0f);
+            StartCoroutine(CoFlash());
+            StartCoroutine(BoarderAnim());
         }
+
     }
-    
-    public virtual void OnTriggerStay2D(Collider2D other)
+
+    private void OnTriggerExit2D(Collider2D collision)
     {
-        if (other.CompareTag("Player") && gm.currentMap == mapSquare)
-              InvokeRepeating(nameof(Flashing), 0.0f, 0.1f);
-    }
-    public virtual  void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
+
+        if (collision.GetComponent<PlayerPawn>())//if the thing colliding with us has a playerpawn object
         {
-            CancelInvoke();
-            sprite.color = entered;
+            StopAllCoroutines(); //stop flashing
+            sprite.color = entered;//set color
+            boarder.enabled = false;//hide boarder
         }
     }
-    public void Flashing()
+
+    IEnumerator BoarderAnim()
     {
-        if (sprite.color == flashA)
-            sprite.color = flashB;
-        else
-            sprite.color = flashA;
+        boarder.enabled = true;
+        Vector3 normal = new Vector3(1.15f, 2.0f, 1.0f);
+        Vector3 large = new Vector3(2.0f, 2.85f, 1.0f);
+        WaitForSeconds waitTime = new WaitForSeconds(frameDelay);
+
+        while (true) 
+        {
+            if (boarder.transform.localScale == normal)
+                boarder.transform.localScale = large;
+            else
+                boarder.transform.localScale = normal;
+
+            yield return waitTime;            
+        }
+
+
+    }
+    IEnumerator CoFlash() //the coroutine 
+    {
+        /*
+         * Loops until stop is called from an ontriggerexit event.
+         * this just changes the color of the minimap square the player
+         * is in to show the active portion of that map
+         */
+        //show the room on the map
+        sprite.enabled = true;
+        WaitForSeconds waitTime = new WaitForSeconds(flashDelay);
+
+        while (true)
+        {
+            
+            if (sprite.color == flashA) //determine what color the box is
+                sprite.color = flashB; //change color
+            else
+                sprite.color = flashA; //change color
+
+            yield return waitTime;//pauses just the coroutine, then starts over after waitTime
+        }
     }
 }

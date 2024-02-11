@@ -5,13 +5,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
+using System.IO;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor;
 
 public enum SceneIndexes
 {
     Main_Menu = 0,
-    Prologue = 1, 
-    Zone_1 = 2,
-
+    Prologue = 1,
 }
 public enum ActiveMenu
 {
@@ -56,7 +57,7 @@ public class GameSettings : MonoBehaviour
     public Toggle fullScreenToggle;
     public TMPro.TMP_Dropdown resolutionDropDown,
     qualityDropDown;
-    public List<Resolution> resolutions;
+    public Resolution[] resolutions;
     public List<GameObject> background = new List<GameObject>();
     #endregion
     #region Quality
@@ -81,6 +82,39 @@ public class GameSettings : MonoBehaviour
         activeMenu = ActiveMenu.Main;
         SetUpOptions();
     }
+    #region Setup
+    protected void SetUpOptions()
+    {
+        DataManager.Instance.LoadSettings();//load values
+
+
+        resolutionDropDown.ClearOptions();//clear any res options
+
+        List<string> options = GetResolutions();//generate the list of resolutions
+        resolutionDropDown.AddOptions(options);//add list to the dropdown
+
+        // Build quality levels
+        qualityDropDown.ClearOptions();//clear anything that might already exist
+        qualityDropDown.AddOptions(QualitySettings.names.ToList());//add the quality levels to the dropdown
+
+
+        //get values from settings data
+        masterVolumeSlider.value = DataManager.Instance.settingsData.masterVolume;
+        musicVolumeSlider.value = DataManager.Instance.settingsData.musicVolume;
+        effectsVolumeSlider.value = DataManager.Instance.settingsData.effectsVolume;
+        resolutionDropDown.value = DataManager.Instance.settingsData.resolution;
+        fullScreenToggle.isOn = DataManager.Instance.settingsData.fullScreen;
+        qualityDropDown.value = DataManager.Instance.settingsData.quality;
+
+        //match values
+        mixer.SetFloat("masterVolume", Mathf.Log10(masterVolumeSlider.value) * 20);
+        mixer.SetFloat("musicVolume", Mathf.Log10(musicVolumeSlider.value) * 20);
+        mixer.SetFloat("effectsVolume", Mathf.Log10(effectsVolumeSlider.value) * 20);
+        SetResolution(resolutionDropDown.value);
+        ScreenToggle(fullScreenToggle.isOn);
+        SetQuality(qualityDropDown.value);
+    }
+    #endregion
 
     #region Button Presses
     //exit game
@@ -94,8 +128,20 @@ public class GameSettings : MonoBehaviour
 #endif
     }
     //start the game
-    public void StartGame()
+    public void NewGame()
     {
+        //load whatever scene our zone1 is
+        SceneManager.LoadSceneAsync((int)SceneIndexes.Prologue);
+        //display HUD canvas
+        SelectMenu("HUD Canvas");
+        //Set enum to Game (Used to tell what screen is active)
+        activeMenu = ActiveMenu.Game;
+        Camera.main.GetComponent<AudioSource>().clip = scene1;
+        Time.timeScale = 1;
+    }
+    public void ContinueGame()
+    {
+
         //load whatever scene our zone1 is
         SceneManager.LoadSceneAsync((int)SceneIndexes.Prologue);
         //display HUD canvas
@@ -113,7 +159,6 @@ public class GameSettings : MonoBehaviour
     }
     public void ButtonClick()
     {
-        if (!fxSource.isPlaying)
         fxSource.PlayOneShot(buttonClick);
     }
     public int BoolToInt(bool value)
@@ -138,7 +183,7 @@ public class GameSettings : MonoBehaviour
             return false;
         }
     }
-    
+
     #endregion
     #region Menu Navigation
     public void SetMain()
@@ -148,8 +193,8 @@ public class GameSettings : MonoBehaviour
     }
     public void OptionsBack()
     {
-        if (activeMenu == ActiveMenu.Main)        
-            MainBack();        
+        if (activeMenu == ActiveMenu.Main)
+            MainBack();
         else
             GameBack();
     }
@@ -206,138 +251,102 @@ public class GameSettings : MonoBehaviour
         //this works better than using an animation curve, min value must be above 0
         mixer.SetFloat("masterVolume", Mathf.Log10(masterVolumeSlider.value) * 20);
 
-        //save playerprefs
-        PlayerPrefs.SetFloat("Volume_Master", masterVolumeSlider.value);
-        PlayerPrefs.Save();//save playerprefs
+        //save data
+        DataManager.Instance.settingsData.masterVolume = masterVolumeSlider.value;//update data
+        DataManager.Instance.SaveSettings();//save value
     }
     public void UpdateMusic()
     {
         //this works better than using an animation curve, min value must be above 0       
         mixer.SetFloat("musicVolume", Mathf.Log10(musicVolumeSlider.value) * 20);
 
-        //save playerprefs
-        PlayerPrefs.SetFloat("Volume_Music", musicVolumeSlider.value);
-        PlayerPrefs.Save();//save playerprefs
+        //save data
+        DataManager.Instance.settingsData.musicVolume = musicVolumeSlider.value;//update data
+        DataManager.Instance.SaveSettings();//save value
     }
     public void UpdateEffects()
     {
         //this works better than using an animation curve, min value must be above 0
         mixer.SetFloat("effectsVolume", Mathf.Log10(effectsVolumeSlider.value) * 20);
 
-        //save playerprefs
-        PlayerPrefs.SetFloat("Volume_Effects", effectsVolumeSlider.value);
-        PlayerPrefs.Save();//save playerprefs
+        //save data
+        DataManager.Instance.settingsData.effectsVolume = effectsVolumeSlider.value;//update data
+        DataManager.Instance.SaveSettings();//save value
     }
     #endregion
-    protected void SetUpOptions()
-    {
-        resolutionDropDown.ClearOptions();//clear any res options
-        resolutions = GetResolutions();//get resolution array
-        List<string> options = new List<string>();//create list to hold resolutions
 
-        for (int index = 0; index < resolutions.Count; index++)//loop through all possible resolutions system can use
-        {
-            options.Add(string.Format("{0} x {1}", resolutions[index].width, resolutions[index].height));//add each to the list
-        }
-
-        resolutionDropDown.AddOptions(options);//add list to the dropdown
-
-        // Build quality levels
-        qualityDropDown.ClearOptions();//clear anything that might already exist
-        qualityDropDown.AddOptions(QualitySettings.names.ToList());//add the quality levels to the dropdown
-
-
-        //setup options to match what is saved in playerprefs
-        //create values if they are not present
-        if (!PlayerPrefs.HasKey("Volume_Master"))
-            PlayerPrefs.SetFloat("Volume_Master", 0.5f);
-        if (!PlayerPrefs.HasKey("Volume_Music"))
-            PlayerPrefs.SetFloat("Volume_Music", 0.5f);
-        if (!PlayerPrefs.HasKey("Volume_Effects"))
-            PlayerPrefs.SetFloat("Volume_Effects", 0.5f);
-        masterVolumeSlider.value = PlayerPrefs.GetFloat("Volume_Master");//get palyerprefs value, if it doesnt exist, default to .5
-        musicVolumeSlider.value = PlayerPrefs.GetFloat("Volume_Music");
-        effectsVolumeSlider.value = PlayerPrefs.GetFloat("Volume_Effects");
-
-        mixer.SetFloat("masterVolume", Mathf.Log10(masterVolumeSlider.value) * 20);
-        mixer.SetFloat("musicVolume", Mathf.Log10(musicVolumeSlider.value) * 20);
-        mixer.SetFloat("effectsVolume", Mathf.Log10(effectsVolumeSlider.value) * 20);
-
-        resolutionDropDown.value = PlayerPrefs.GetInt("ResIndex", 0);
-        SetResolution(resolutionDropDown.value);
-        fullScreenToggle.isOn = IntToBool(PlayerPrefs.GetInt("FullScreen", 1));
-        ScreenToggle(fullScreenToggle.isOn);
-        qualityDropDown.value = PlayerPrefs.GetInt("QualityLevel", 5);//get setting from playerprefs
-        SetQuality(qualityDropDown.value);
-    }
     public void SetQuality(int index)
     {
         QualitySettings.SetQualityLevel(index);//pass the dropdown selection to qualitylevel
-        PlayerPrefs.SetInt("QualityLevel", index);//save in playerprefs
-        PlayerPrefs.Save();//save playerprefs
+
+        DataManager.Instance.settingsData.quality = index;//update data
+        DataManager.Instance.SaveSettings();//save
     }
     #region Screen
-    public List<Resolution> GetResolutions()
+    public List<string> GetResolutions()
     {
         //This should stop duplicate resolutions from showing up, and leave us with only max refresh rates
-        Resolution[] resolutions = Screen.resolutions;
-        HashSet<System.Tuple<int, int>> uniqueResolutions = new HashSet<System.Tuple<int, int>>();
-        Dictionary<System.Tuple<int, int>, int> maxRefreshRates = new Dictionary<System.Tuple<int, int>, int>();
-        for (int i = 0; i < resolutions.Length; i++)
-        {
-            //add resolutions if they dont exist
-            System.Tuple<int, int> resolution = new System.Tuple<int, int>(resolutions[i].width, resolutions[i].height);
-            uniqueResolutions.Add(resolution);
-            //get highest framerate
-            if (!maxRefreshRates.ContainsKey(resolution))
-            {
-                maxRefreshRates.Add(resolution, resolutions[i].refreshRate);
-            }
-            else
-            {
-                maxRefreshRates[resolution] = resolutions[i].refreshRate;
-            }
 
-        }
-        //Build the list
-        List<Resolution> uniqueResolutionList = new List<Resolution>(uniqueResolutions.Count);
-        foreach (System.Tuple<int, int> resolution in uniqueResolutions)
+        resolutions = Screen.resolutions;//get resolution array
+        //build dropdown for screen resolutions and quality levels
+        List<Resolution> allRes = new List<Resolution>();//create list to hold resolutions
+        List<string> options = new List<string>();//and a list for unique reses
+
+        resolutionDropDown.ClearOptions();//clear anything that might be there
+
+        for (int index = 0; index < resolutions.Length; index++)//loop through all possible resolutions system can use
         {
-            Resolution newResolution = new Resolution
-            {
-                width = resolution.Item1,
-                height = resolution.Item2
-            };
-            if (maxRefreshRates.TryGetValue(resolution, out int refreshRate))
-            {
-                newResolution.refreshRate = refreshRate;
-            }
-            uniqueResolutionList.Add(newResolution);
+            allRes.Add(resolutions[index]);//add to list    
         }
-        return uniqueResolutionList;
+        //Create a list of resolutions
+        //only use ones that have a refresh rate of at least 60
+        //sort by refresh rate then resolution
+        //highest width on top
+        allRes = (from Resolution in allRes
+                  where Resolution.refreshRate >= 60.0f
+                  orderby Resolution.refreshRate, Resolution.width
+                  descending
+                  select Resolution).ToList();
+
+        allRes = allRes.Distinct().ToList();//remove duplicate resolutions --This should leave us with only the max refresh rate per resolution
+
+
+        //convert to string list
+        for (int i = 0; i < allRes.Count; i++)
+        {
+            options.Add(string.Format("{0} x {1}", allRes[i].width, allRes[i].height));//add each to the list
+        }
+
+        return options;
     }
     public void SetResolution(int index)
     {
         Resolution resolution = resolutions[index];//pass index to resolution array
         Screen.SetResolution(resolution.width, resolution.height, fullScreenToggle);//set resolution and fullscreen
-        PlayerPrefs.SetInt("ResIndex", index);
-        PlayerPrefs.Save();//save playerprefs
+
+        DataManager.Instance.settingsData.resolution = index;//update data
+        DataManager.Instance.SaveSettings();//save
     }
     public void ScreenToggle(bool toggle)
     {
         Screen.fullScreen = toggle;
-        PlayerPrefs.SetInt("FullScreen", BoolToInt(toggle));
-        PlayerPrefs.Save();
+
+        DataManager.Instance.settingsData.fullScreen = toggle;//update data
+        DataManager.Instance.SaveSettings();//save
     }
     #endregion
-    [ContextMenu("Clear Player Prefs")]
-    public void ClearPlayerPrefs()
+    #region Clear Player Prefs
+    [MenuItem("Settings/Clear Player Prefs")]
+    static void ClearPlayerPrefs()
     {
         PlayerPrefs.DeleteAll();
     }
+    #endregion
+
     private void OnDestroy()
     {
         Destroy(Instance);
         Instance = null;
     }
+
 }

@@ -71,21 +71,12 @@ public class Pawn : MonoBehaviour
 
 
     #region Functions
-    void Awake()
-    {
-    }
     // Start is called before the first frame update
     protected virtual void Start()
     {
-       ani = GetComponent<Animator>();
+        ani = GetComponent<Animator>();
         t = gameObject.transform;
-        rb= GetComponent<Rigidbody2D>();
-    }
-
-    // Update is called once per frame
-    protected virtual void Update()
-    {
-
+        rb = GetComponent<Rigidbody2D>();
     }
 
     #endregion

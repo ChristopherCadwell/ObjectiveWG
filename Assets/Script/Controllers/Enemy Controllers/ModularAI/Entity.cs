@@ -198,9 +198,12 @@ public class Entity : MonoBehaviour
         facingDirection *= -1;
         transform.Rotate(0f, 180f, 0f);
     }
-   
+    private void OnDisable()
+    {
+        Destroy(floatingTextPrefab);
+    }
     #region Gizmos
-    
+
 
     public virtual void OnDrawGizmos()
     {

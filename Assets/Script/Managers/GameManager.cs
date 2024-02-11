@@ -6,10 +6,10 @@ using UnityEngine.SceneManagement;
 using Cinemachine;
 using Cinemachine.Utility;
 
-public class GameManager : MonoBehaviour, IDataPersistence
+public class GameManager : MonoBehaviour
 {
     #region Variables
-
+    public Vector3 m_LastGround;
     #region Player Object
     [Header("Objects"), Tooltip("Drag prefabs onto these")]
     public PlayerPawn player;
@@ -80,14 +80,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
         cameraMain = Camera.main;
     }
 
-    private void Start()
-    {
-        if (lastCheckPoint == null)
-        {
-            lastCheckPoint = playerSpawn;
-        }
-    }
-
     // Update is called once per frame
     private void Update()
     {
@@ -120,39 +112,24 @@ public class GameManager : MonoBehaviour, IDataPersistence
     #endregion
 
 
-
-
-
-
-
-
-
-
-
     #region SaveData
-    public void LoadData(GameData Data)
+    public void LoadGame(SaveData Data)
     {
-        lastCheckPoint = Data.lastCheckPoint;
-        lastCheckPointName = Data.lastCheckPointName;
+
     }
 
-    public void SaveData(ref GameData Data)
+    public void SaveGame(ref SaveData Data)
     {
-        Data.lastCheckPoint = lastCheckPoint;
-        Data.lastCheckPointName = lastCheckPointName;
-    }
 
+    }
     #endregion
     #region Functions
 
-   
-
-    
 
     private void OnSceneLoaded(Scene loaded, LoadSceneMode mode)
     {
         scene = loaded;//update what scene we are in
-        if(GameSettings.Instance != null)
+        if (GameSettings.Instance != null)
         {
             if (scene.name != "MainMenu")
             {
@@ -166,12 +143,12 @@ public class GameManager : MonoBehaviour, IDataPersistence
             }
         }
         else
-            VarCheck();
+            return;
     }
 
-    
 
-    
+
+
     public void VarCheck()
     {
         //set objects
@@ -181,7 +158,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         //spawn points
         playerSpawn = GameObject.FindGameObjectWithTag("PlayerSpawnPoint").transform.GetChild(0);
         //vcam
-        confiner = GameObject.FindWithTag("Vcam").GetComponent<CinemachineConfiner>();
+        confiner = GameObject.FindWithTag("ParallaxCam").GetComponent<CinemachineConfiner>();
         room1 = GameObject.FindWithTag("Room1").GetComponent<CompositeCollider2D>();
 
         //set up player
@@ -198,10 +175,13 @@ public class GameManager : MonoBehaviour, IDataPersistence
     #region Player Spawning
     void CheckSpawn()
     {
+        if (lastCheckPoint == null)
+            lastCheckPoint = playerSpawn;
+
         if (player != null)
             if (player.gameObject.activeInHierarchy != true)
-                    if (gameOver == false)//no player active and it is not game over
-                        SpawnPlayer();//run player spawn function
+                if (gameOver == false)//no player active and it is not game over
+                    SpawnPlayer();//run player spawn function
     }
 
     public void SpawnPlayer()
@@ -216,19 +196,24 @@ public class GameManager : MonoBehaviour, IDataPersistence
             player.Lives--;//decrement lives
             lives = player.Lives;//track how many lives
             playerRecorder = player.GetComponent<InputRecorder>();
-            confiner.m_BoundingShape2D = currentRoom.GetComponent<PolygonCollider2D>();
+            //confiner.m_BoundingShape2D = currentRoom.GetComponent<PolygonCollider2D>();
 
             if (GameSettings.Instance != null)
             {
                 UpdateHealthBar();
             }
-            
+
         }
         else
         {
             GameOver();
         }
-        
+
+    }
+    public void HoleReSpawn()
+    {
+        Debug.Log("Fell in a hole");
+        player.transform.position = m_LastGround;//return player to last grounded position   
     }
     public void ResetSpawn()
     {
@@ -239,7 +224,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
         playerSpawn.position = playerSpawn.parent.position;
         confiner.m_BoundingShape2D = room1;
-        
+
         SpawnPlayer();
     }
     #endregion
@@ -267,7 +252,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
             GameSettings.Instance.SelectMenu("GameOverCanvas");
         }
     }
-        
+
 
 
     public void OnDisable()

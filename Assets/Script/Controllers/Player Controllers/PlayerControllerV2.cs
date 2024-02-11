@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerControllerV2 : Controller
 {
     #region Variables
+    private GameManager gm;
     #region General Player Variables
     [Header("General Player Variables")]
     protected PlayerInput playerInput; //defines the input that the pawn is utlizing 
@@ -77,6 +79,7 @@ public class PlayerControllerV2 : Controller
     #region Setup
     protected override void Awake()
     {
+        gm = GameManager.Instance;
         playerInput = GetComponent<PlayerInput>();
         combat = GetComponent<Combat>();
         pawn = GetComponent<PlayerPawn>();
@@ -119,6 +122,10 @@ public class PlayerControllerV2 : Controller
         base.Start();
     }
     #endregion
+    private void OnEnable()
+    {
+        StartCoroutine(UpdateGrounded(1));
+    }
 
     #region Update
     protected override void Update()
@@ -130,9 +137,6 @@ public class PlayerControllerV2 : Controller
         ApplyMovement();
 
         isGrounded = GroundCheck();
-
-        if (colCount == 0)//not colliding with anything
-            GroundCheck();//look for something beneath us
 
         SlopeCheck();
 
@@ -149,6 +153,10 @@ public class PlayerControllerV2 : Controller
                 rb2d.velocity += newForce;
                 jumpTimeCounter -= Time.fixedDeltaTime; // subtracts time from the jumpTimeCounter
             }
+            else
+            {
+                isJumping = false;
+            }
         }
         else if (isGrounded)
         {
@@ -157,7 +165,6 @@ public class PlayerControllerV2 : Controller
         }
         else
         {
-            //do nothing
         }
 
         base.FixedUpdate();
@@ -284,7 +291,6 @@ public class PlayerControllerV2 : Controller
 
             if ((slopeDownAngle <= angleTolerance)&&(slopeDownAngle != 0))
             {
-                Debug.Log(slopeDownAngle);
                 if (slopeDownAngle != slopeDownAngleOld)
                 {
                     isOnSlope = true;
@@ -293,10 +299,6 @@ public class PlayerControllerV2 : Controller
 
             slopeDownAngleOld = slopeDownAngle;
 
-
-            //debug
-            Debug.DrawRay(hit.point, hit.normal, Color.green);
-            Debug.DrawRay(hit.point, slopeNormalPerp, Color.red);
         }
         if (isOnSlope && inputX == 0)
         {
@@ -314,6 +316,7 @@ public class PlayerControllerV2 : Controller
     #region Action Input Functions
     public virtual void JumpStart(InputAction.CallbackContext context)
     {
+        //playerInputActions.PlayerHuman.JumpStart.triggered
         if (context.performed)
         {
             if (isGrounded && !isCrouching) //only allows the player to jump if they're on the ground
@@ -325,6 +328,7 @@ public class PlayerControllerV2 : Controller
                 newVelocity.Set(currentVelocity.x, jumpForce);
                 rb2d.velocity = newVelocity;
             }
+            
         }
     }
     public virtual void JumpEnd(InputAction.CallbackContext context)
@@ -410,17 +414,19 @@ public class PlayerControllerV2 : Controller
     {
         colCount++;
     }
-    void OnCollisionStay2D(Collision2D coll)
+    void OnCollisionStay2D(Collision2D col)
     {
-        angleTolerance = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
-
-        foreach (ContactPoint2D contact in coll.contacts)
+        Vector2 normal = col.contacts[0].normal;
+        Vector2 vel = rb2d.velocity;
+        if (col.gameObject.CompareTag("Ground"))
         {
-            if (Vector3.Dot(contact.normal, Vector3.up) < angleTolerance)
+            if (Vector2.Angle(vel, -normal) > maxGroundAngle)
             {
                 isGrounded = true;
             }
         }
+        
+        
     }
 
     private void OnCollisionExit2D(Collision2D collision)
@@ -442,7 +448,20 @@ public class PlayerControllerV2 : Controller
         isAttacking = false;
     }
     #endregion
-
+    IEnumerator UpdateGrounded(float seconds)
+    {
+        while (true)
+        {
+            while (GroundCheck())
+            {
+                gm.m_LastGround = transform.position;
+                yield return new WaitForSeconds(seconds);
+            }
+            yield return new WaitForSeconds(seconds);
+        }
+        
+                
+    }
     #region Cleanup
     private void OnDestroy()
     {
@@ -461,6 +480,8 @@ public class PlayerControllerV2 : Controller
 
         //Disable Input
         playerInputActions.PlayerHuman.Disable();
+
+        StopAllCoroutines();
     }
     #endregion
     #region Gizmos

@@ -36,6 +36,13 @@ TagManager:
   - MusicSlider
   - EnemySpawn
   - CMPipe
+  - ParallaxCam
+  - MiniMapSection
+  - ZoneSection
+  - MinimapSquare
+  - ZoneRoom
+  - MinimapRoom
+  - Ground
   layers:
   - Default
   - TransparentFX
